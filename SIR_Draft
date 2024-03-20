@@ -33,7 +33,7 @@ SIR <- function(N, t, b, a, v) {
   
   N <- 
   t <- 
-  b <- 
+  b <- 12
   a <- 
   v <- 
   
