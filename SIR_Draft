@@ -32,9 +32,10 @@ SIR <- function(N, t, b, a, v) {
   # Plan to have % of population vaccinated based on data
   
   N <- 4,754,075
-  t <- 
-  b <- 12
-  a <- 
+  t <- 500
+  b <- 6e-3
+  b2 <- 9e-3 
+  a <- 1e-1
   v <- 224,000
   
   # R0 is often cited to be 12-18, which means that each person with measles would, 
@@ -80,7 +81,7 @@ SIR <- function(N, t, b, a, v) {
         }
       }
       # else if individual is removed stays removed
-      #. account for every possibility in the group, they can be this if not, that
+      # account for every possibility in the group, they can be this if not, that
       else if (dm[i-1,j] == "R") {
         dm[i,j] <- dm[i-1,j]
       }
