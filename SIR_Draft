@@ -47,11 +47,8 @@ SIR <- function(N, t, b, a, v) {
   # create and initialize matrix
   dm <- matrix(nrow = t, ncol = N)
   dm[1,1] <- "I"  # sets the first infected individuals (in row 1, col 1)
-  # dm[1,1:10] <- "I" would be the. first 10 people to be infected
-  # would need to. change the next line of code to dm[1,11:N] <- "S" everyone else susceptible
-  # OR dm[1,11:100] <- "S" and for vaccinated individuals 
-  # dm[1,101:N] <- "V" for the individuals that are vaccinated. 
-  dm[1,2:N] <- "S" # all others are susceptible (all the way to N # of individuals)
+  dm[1, 1:224000] <- "V"  #vaccinated
+  dm[1, 224001:N] <- "S" everyone else susceptible
   
   # addition of the third starting group begins here going into the matrix dm 
   # with the actual code portion above, only filled the first row, need to loop it to the rest
