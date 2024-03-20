@@ -28,7 +28,7 @@ SIR <- function(N, t, b, a, v) {
   # t - length (iteration/time) of run
   # b - infection rate
   # a - recovery rate
-  # v - vaccinated individuals
+  # v - vaccinated individuals infection rate (based on  effectiveness of measles vaccine) 
   # Plan to have % of population vaccinated based on data
   
   N <- 4,754,075
@@ -36,8 +36,10 @@ SIR <- function(N, t, b, a, v) {
   b <- 6e-3
   b2 <- 9e-3 
   a <- 1e-1
-  v <- 224,000
-  
+  v <- 7e-2
+
+  # Rate = 1 - Percentage to  get infection rate 
+
   # R0 is often cited to be 12-18, which means that each person with measles would, 
   # on average, infect 12-18 other people in a susceptible population
  
@@ -102,3 +104,6 @@ new_stoch <- function(N, t, b, a, v) {
   sir_df$gens <- c(1:nrow(sir_df))
   return(sir_df)
 }
+
+Notes: How to  incorporate vaccines into the  if-else code? 
+Effectiveness of vaccine * Infection rate = Infection rate of vaccinated individuals 
