@@ -1,0 +1,103 @@
+source("https://raw.githubusercontent.com/legalLab/protocols-scripts/master/scripts/sir_functions.R")
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# deterministic SIR function
+sir_det <- function(N, t, b, a) {
+  df <- SIR(N, t, b, a)
+  sir_m <- matrix(nrow = t, ncol = 3)
+  colnames(sir_m) <- c("S","I","R")
+  rownames(sir_m) <- c(1:t)
+  
+  sir_m[, "S"] <- apply(df == "S", 1, sum)
+  sir_m[, "I"] <- apply(df == "I", 1, sum)
+  sir_m[, "R"] <- apply(df == "R", 1, sum)
+  
+  sir_df <- as.data.frame(sir_m)
+  sir_df$gens <- c(1:nrow(sir_df))
+  return(sir_df)
+}
+
+
+#------------------------------
+# SIR function that does the actual stochastic simulations
+SIR <- function(N, t, b, a, v) {
+  # N - number of individuals
+  # t - length (iteration/time) of run
+  # b - infection rate
+  # a - recovery rate
+  # v - vaccinated individuals
+  # Plan to have % of population vaccinated based on data
+  
+  N <- 
+  t <- 
+  b <- 
+  a <- 
+  v <- 
+  
+  # R0 is often cited to be 12-18, which means that each person with measles would, 
+  # on average, infect 12-18 other people in a susceptible population
+  
+  # create and initialize matrix
+  dm <- matrix(nrow = t, ncol = N)
+  dm[1,1] <- "I"  # sets the first infected individuals (in row 1, col 1)
+  # dm[1,1:10] <- "I" would be the. first 10 people to be infected
+  # would need to. change the next line of code to dm[1,11:N] <- "S" everyone else susceptible
+  # OR dm[1,11:100] <- "S" and for vaccinated individuals 
+  # dm[1,101:N] <- "V" for the individuals that are vaccinated. 
+  dm[1,2:N] <- "S" # all others are susceptible (all the way to N # of individuals)
+  
+  # addition of the third starting group begins here going into the matrix dm 
+  # with the actual code portion above, only filled the first row, need to loop it to the rest
+  
+  # loop through time t (rows)
+  for (i in 2:t) {
+    # "i in" is a counter, "j in" is the same thing but if. youhave multiple counters, 
+    # you have to name them differently 
+    # count number of infected individuals
+    inf <- sum(dm[i-1,] == "I") # sum of the matrix 
+    # loop through individuals (columns)
+    for (j in 1:N) {
+      # if individual is susceptible can become infected or stays susceptible
+      if (dm[i-1,j] == "S") {
+        if (runif(1) <= (1-(1-b)^inf)) {
+          dm[i,j] <- "I"
+        } else {
+          dm[i,j] <- dm[i-1,j] # S
+        }
+      }
+      # else if individual is infected can become removed or stays infected 
+      else if (dm[i-1,j] == "I") {
+        if(runif(1) <= a) {
+          dm[i,j] <- "R"
+        } else {
+          dm[i,j] <- dm[i-1,j]	
+        }
+      }
+      # else if individual is removed stays removed
+      #. account for every possibility in the group, they can be this if not, that
+      else if (dm[i-1,j] == "R") {
+        dm[i,j] <- dm[i-1,j]
+      }
+    }
+  }
+  return(as.data.frame(dm))
+}
+
+new_stoch <- function(N, t, b, a, v) {
+  df <- SIR(N, t, b, a, v)
+  sir_m <- matrix(nrow = t, ncol = 4)
+  colnames(sir_m) <- c("S","I","R","V")
+  rownames(sir_m) <- c(1:t)
+  
+  sir_m[, "S"] <- apply(df == "S", 1, sum)
+  sir_m[, "I"] <- apply(df == "I", 1, sum)
+  sir_m[, "R"] <- apply(df == "R", 1, sum)
+  sir_m[, "V"] <- apply(df == "V", 1, sum)
+  
+  sir_df <- as.data.frame(sir_m)
+  sir_df$gens <- c(1:nrow(sir_df))
+  return(sir_df)
+}
