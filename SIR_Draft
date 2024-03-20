@@ -31,14 +31,17 @@ SIR <- function(N, t, b, a, v) {
   # v - vaccinated individuals
   # Plan to have % of population vaccinated based on data
   
-  N <- 
+  N <- 4,754,075
   t <- 
   b <- 12
   a <- 
-  v <- 
+  v <- 224,000
   
   # R0 is often cited to be 12-18, which means that each person with measles would, 
   # on average, infect 12-18 other people in a susceptible population
+ 
+  # 88% of children that reported with measles had not received their first-dose of the MMR vaccine 
+  # In 2022, 224,000 children in Yemen received their first dose of MMR vaccine (UNOCHA)
   
   # create and initialize matrix
   dm <- matrix(nrow = t, ncol = N)
