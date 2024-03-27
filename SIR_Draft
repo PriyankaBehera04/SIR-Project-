@@ -69,11 +69,12 @@ SIR <- function(N, t, b, a, v) {
       if (dm[i-1,j] == "S") {
         if (runif(1) <= (1-(1-b)^inf)) {
           dm[i,j] <- "I"
-        } else if (runof(1) <= v) {
-            dm[i,j] <- "V" 
-            }else {
+        } else if (runif(1) <= (1-(1-v)^inf)) {
+            dm[i,j] <- "V"
+            } else {
           dm[i,j] <- dm[i-1,j] # S
         }
+   
       }
       # else if individual is infected can become removed or stays infected 
       else if (dm[i-1,j] == "I") {
