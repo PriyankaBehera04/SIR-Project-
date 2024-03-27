@@ -74,7 +74,14 @@ SIR <- function(N, t, b, a, v) {
             } else {
           dm[i,j] <- dm[i-1,j] # S
         }
-   
+   #if individual is vaccinated can become infected or stay vaccinated
+    else if (dm[i-1,j] == "V" {
+      if(runif(1) <= (1-(1-v)^inf)) {
+        dm[i,j] <- "I"
+      } else {
+        dm[i,j] <- dm[i-1,j]
+      }
+  }
       }
       # else if individual is infected can become removed or stays infected 
       else if (dm[i-1,j] == "I") {
