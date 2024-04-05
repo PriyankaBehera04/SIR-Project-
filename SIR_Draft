@@ -65,7 +65,7 @@ SIR <- function(N, t, b, a, v) {
     inf <- sum(dm[i-1,] == "I") # sum of the matrix 
     # loop through individuals (columns)
     for (j in 1:N) {
-      # if individual is susceptible can become infected or stays susceptible
+      # if individual is susceptible can become infected or stays susceptible or becomes vaccinated
       if (dm[i-1,j] == "S") {
         if (runif(1) <= (1-(1-b)^inf)) {
           dm[i,j] <- "I"
