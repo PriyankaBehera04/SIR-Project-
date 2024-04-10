@@ -4,25 +4,14 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 
-# deterministic SIR function
-sir_det <- function(N, t, b, a) {
-  df <- SIR(N, t, b, a)
-  sir_m <- matrix(nrow = t, ncol = 3)
-  colnames(sir_m) <- c("S","I","R")
-  rownames(sir_m) <- c(1:t)
-  
-  sir_m[, "S"] <- apply(df == "S", 1, sum)
-  sir_m[, "I"] <- apply(df == "I", 1, sum)
-  sir_m[, "R"] <- apply(df == "R", 1, sum)
-  
-  sir_df <- as.data.frame(sir_m)
-  sir_df$gens <- c(1:nrow(sir_df))
-  return(sir_df)
-}
-
-
 #------------------------------
 # SIR function that does the actual stochastic simulations
+  N <- 1000
+  t <- 200
+  b <- 6e-3
+  a <- 1e-2
+  v <- 7e-5
+
 SIR <- function(N, t, b, a, v) {
   # N - number of individuals
   # t - length (iteration/time) of run
@@ -30,30 +19,22 @@ SIR <- function(N, t, b, a, v) {
   # a - recovery rate
   # v - vaccinated individuals infection rate (based on  effectiveness of measles vaccine) 
   # Plan to have % of population vaccinated based on data
-  
-  N <- 4,754,075
-  t <- 500
-  b <- 6e-3
-  b2 <- 9e-3 
-  a <- 1e-1
-  v <- 7e-2
-
   # Rate = 1 - Percentage to  get infection rate 
-
+  
   # R0 is often cited to be 12-18, which means that each person with measles would, 
   # on average, infect 12-18 other people in a susceptible population
- 
+  
   # 88% of children that reported with measles had not received their first-dose of the MMR vaccine 
   # In 2022, 224,000 children in Yemen received their first dose of MMR vaccine (UNOCHA)
   
   # create and initialize matrix
   dm <- matrix(nrow = t, ncol = N)
   dm[1,1] <- "I"  # sets the first infected individuals (in row 1, col 1)
-  dm[1, 1:224000] <- "V"  #vaccinated
-  dm[1, 224001:N] <- "S" everyone else susceptible
-
+  dm[1, 2:500] <- "V"  #vaccinated
+  dm[1, 501:N] <- "S" #everyone else susceptible
+  
   # 224000 is the number of children  from 6 months - 5 years that have received the first dose of the Measles vaccine
-
+  
   # addition of the third starting group begins here going into the matrix dm 
   # with the actual code portion above, only filled the first row, need to loop it to the rest
   
@@ -65,24 +46,24 @@ SIR <- function(N, t, b, a, v) {
     inf <- sum(dm[i-1,] == "I") # sum of the matrix 
     # loop through individuals (columns)
     for (j in 1:N) {
-      # if individual is susceptible can become infected or stays susceptible or becomes vaccinated
+      # if individual is susceptible can become infected or stays susceptible
       if (dm[i-1,j] == "S") {
         if (runif(1) <= (1-(1-b)^inf)) {
           dm[i,j] <- "I"
-        } else if (runif(1) <= (1-(1-v)^inf)) {
-            dm[i,j] <- "V"
-            } else {
+        } #else if (runif(1) <= v) {
+          #dm[i,j] <- "V"}
+        else {
           dm[i,j] <- dm[i-1,j] # S
         }
-   #if individual is vaccinated can become infected or stay vaccinated
-    else if (dm[i-1,j] == "V" {
-      if(runif(1) <= (1-(1-v)^inf)) {
-        dm[i,j] <- "I"
-      } else {
-        dm[i,j] <- dm[i-1,j]
       }
-  }
-      }
+        #if individual is vaccinated can become infected or stay vaccinated
+        else if (dm[i-1,j] == "V") {
+          if(runif(1) <= (1-(1-v)^inf)) {
+            dm[i,j] <- "I"
+          } else {
+            dm[i,j] <- dm[i-1,j]
+          }
+        }
       # else if individual is infected can become removed or stays infected 
       else if (dm[i-1,j] == "I") {
         if(runif(1) <= a) {
@@ -100,8 +81,9 @@ SIR <- function(N, t, b, a, v) {
   }
   return(as.data.frame(dm))
 }
+SIR(N, t, b, a, v)
 
-new_stoch <- function(N, t, b, a, v) {
+sir_stoch <- function(N, t, b, a, v) {
   df <- SIR(N, t, b, a, v)
   sir_m <- matrix(nrow = t, ncol = 4)
   colnames(sir_m) <- c("S","I","R","V")
@@ -117,7 +99,92 @@ new_stoch <- function(N, t, b, a, v) {
   return(sir_df)
 }
 
-Notes: How to  incorporate vaccines into the  if-else code? 
-Effectiveness of vaccine * Infection rate = Infection rate of vaccinated individuals 
-The vaccinated individuals have a different rate of infection than susceptible individuals so we need to assign different infecction rates
-to each of the categories and then see how the vaccine affects rate
+x <- sir_stoch(N, t, b, a, v)
+x
+
+error_plot <- function(df) {
+  # takes the output from the super_summary and plots
+  # the S,I,R classes with sd error bars for each timepoint
+  
+  t <- c(1:nrow(df))
+  N <- 1000
+  par(mar = c(5.1, 4.1, 4.1, 2.1))
+  par(xpd=T, mar=par()$mar+c(0,0,0,3))
+  
+  matplot(t, df$muS,  main = 'SIR Cases', xlab='time steps', ylab='number of individuals', type='l', col=1, ylim = c(-1.5,1000+2.5))
+  segments(t, df$muS-df$sdS, t, df$muS+df$sdS)
+  
+  matlines(t, df$muI, type = 'l', col = 'blue')
+  segments(t, df$muI-df$sdI, t, df$muI+df$sdI, col = 'blue')
+  
+  matlines(t, df$muR, type = 'l', col = 'red')
+  segments(t, df$muR-df$sdR, t, df$muR+df$sdR, col = 'red')
+  
+  matlines(t, df$muV, type = 'l', col = 'green')
+  segments(t, df$muV-df$sdV, t, df$muV+df$sdV, col = 'green')
+  
+  legend(1.07*nrow(df), max(df$muS), c('S', 'I', 'R', 'V'), cex = 0.8, col = c('black', 'blue', 'red', 'green'), lty=c(1, 1, 1, 1))
+  
+  return(invisible(NULL)) #just to keep things honest
+}
+
+summarize_SIR <- function(N, t, b, a, v, reps) {
+  # creates a series of stochasticSIR reps that
+  # are summarized by the summarize_run function and
+  # then loads the S,I,R counts from each timestep into 
+  # separate S/I/R-specific matrices, and then the
+  # S/I/R-specific matrices are used to create a 
+  # super_summary matrix that has the mean and sd
+  # of the counts of S/I/R for each timestep across
+  # all reps
+  
+  # creates separate matrices to keep the SIR values for each timestep and each run
+  S_val <- matrix(nrow=t, ncol=reps)
+  I_val <- matrix(nrow=t, ncol=reps)
+  R_val <- matrix(nrow=t, ncol=reps)
+  V_val <- matrix(nrow=t, ncol=reps)
+  
+  # runs a stochastic sim, summarizes it, and loads the values for timesteps of that run into the summary matrices
+  for(i in 1:reps) {
+    df <- sir_stoch(N, t, b, a, v)
+    #print(i)
+    S_val[, i] <- df$S
+    I_val[, i] <- df$I
+    R_val[, i] <- df$R
+    V_val[, i] <- df$V
+  }
+  
+  # creates an overall summary matrix for the average and stdev for SIR values at each timestep across all runs
+  df <- as.data.frame(matrix(nrow = t, ncol = 8))
+  colnames(df) <- c("muS","sdS","muI","sdI","muR","sdR", "muV", "sdV")
+  rownames(df) <- c(1:t)
+  
+  # creates vectors that hold the means/sds for SIR values applying fn going down rows of the S/I/R value matrices
+  S_rowmeans <- apply(S_val, 1, mean)
+  S_rowstdev <- apply(S_val, 1, sd)
+  I_rowmeans <- apply(I_val, 1, mean)
+  I_rowstdev <- apply(I_val, 1, sd)
+  R_rowmeans <- apply(R_val, 1, mean)
+  R_rowstdev <- apply(R_val, 1, sd)
+  V_rowmeans <- apply(V_val, 1, mean)
+  V_rowstdev <- apply(V_val, 1, sd)
+  
+  # assign the values from the mean/sd vectors into the summary matrix
+  df$muS <- round(S_rowmeans, 1)
+  df$sdS <- round(S_rowstdev, 2)
+  df$muI <- round(I_rowmeans, 1)
+  df$sdI <- round(I_rowstdev, 2)
+  df$muR <- round(R_rowmeans, 1)
+  df$sdR <- round(R_rowstdev, 2)
+  df$muV <- round(V_rowmeans, 1)
+  df$sdV <- round(V_rowstdev, 2)
+  
+  df$gens <- c(1:nrow(df))
+  
+  return(df)
+}
+
+y <- summarize_SIR(N, t, b, a, v, 10)
+y
+error_plot(y)
+
